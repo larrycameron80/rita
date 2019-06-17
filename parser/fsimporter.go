@@ -510,11 +510,15 @@ func (fs *FSImporter) parseFiles(indexedFiles []*fpt.IndexedFile, parsingThreads
 								hostnameMap[domain].ClientIPs = append(hostnameMap[domain].ClientIPs, src)
 							}
 
-							if queryTypeName == "A" {
+							if queryTypeName == "A" || queryTypeName == "AAAA" {
 								answers := parseDNS.FieldByName("Answers").Interface().([]string)
 								for _, answer := range answers {
 									// Check if answer is an IP address and store it if it is
 									if net.ParseIP(answer) != nil {
+										if(answer == "2001:500:90:1::27") {
+											fmt.Print("IPv6 in domain: ")
+											fmt.Println(domain)
+										}
 										if stringInSlice(answer, hostnameMap[domain].ResolvedIPs) == false {
 											hostnameMap[domain].ResolvedIPs = append(hostnameMap[domain].ResolvedIPs, answer)
 										}

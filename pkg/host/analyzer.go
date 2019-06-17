@@ -66,35 +66,29 @@ func (a *analyzer) start() {
 			}
 
 			// update src of connection in hosts table
-			if data.IP4 {
-				var output update
-				newRecordFlag := false
-				type hostRes struct {
-					CID int `bson:"cid"`
-				}
-
-				var res2 []hostRes
-
-				_ = ssn.DB(a.db.GetSelectedDB()).C(a.conf.T.Structure.HostTable).Find(bson.M{"ip": data.Host}).All(&res2)
-
-				if !(len(res2) > 0) {
-					newRecordFlag = true
-					// fmt.Println("host no results", res2, data.Host)
-				} else {
-
-					if res2[0].CID != a.chunk {
-						// fmt.Println("host existing", a.chunk, res2, data.Host)
-						newRecordFlag = true
-					}
-				}
-
-				output = standardQuery(a.chunk, a.chunkStr, data.Host, data.IsLocal, data.IP4, data.IP4Bin, data.MaxDuration, data.TXTQueryCount, data.UntrustedAppConnCount, data.CountSrc, data.CountDst, blacklisted, newRecordFlag)
-
-				// set to writer channel
-				a.analyzedCallback(output)
-
+			var output update
+			newRecordFlag := false
+			type hostRes struct {
+				CID int `bson:"cid"`
 			}
 
+			var res2 []hostRes
+
+			_ = ssn.DB(a.db.GetSelectedDB()).C(a.conf.T.Structure.HostTable).Find(bson.M{"ip": data.Host}).All(&res2)
+
+			if !(len(res2) > 0) {
+				newRecordFlag = true
+			} else {
+
+				if res2[0].CID != a.chunk {
+					newRecordFlag = true
+				}
+			}
+
+			output = standardQuery(a.chunk, a.chunkStr, data.Host, data.IsLocal, data.IP4, data.IP4Bin, data.MaxDuration, data.TXTQueryCount, data.UntrustedAppConnCount, data.CountSrc, data.CountDst, blacklisted, newRecordFlag)
+
+			// set to writer channel
+			a.analyzedCallback(output)
 		}
 		a.analysisWg.Done()
 	}()
